@@ -253,7 +253,7 @@ class EvokerLite(object):
                        lw=m.get('lw', 0.333),
                        edgecolor='black',
                       )
-        xymin = -0.1
+        xymin = min(-0.1, xy.min())
         xymax = 1.1 * xy.max()
         ax.set_xlim([xymin,xymax])
         ax.set_ylim([xymin,xymax])
