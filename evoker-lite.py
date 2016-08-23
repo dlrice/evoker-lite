@@ -232,24 +232,25 @@ class EvokerLite(object):
             self.exclude_list = exclude_list
     
     def plot_intensities(self, variant_name):
-        GENOTYPE_MAPPING = {
-            '00': {'name': 'homozygous A1', 'color': 'blue'},
-            '01': {'name': 'missing', 'color': 'lightgrey'},
-            '10': {'name': 'heterozygous', 'color': 'limegreen'},
-            '11': {'name': 'homozygous A2', 'color': 'red'},
-        }
+        GENOTYPE_MAPPING = (
+            {'code':'00', 'name':'homozygous A1', 'color':'blue'},
+            {'code':'10', 'name':'heterozygous', 'color':'limegreen'},
+            {'code':'11', 'name':'homozygous A2', 'color':'red'},
+            {'code':'01', 'name':'missing', 'color':'lightgrey', 'alpha':0.9, 'lw':0.75},
+        )
         variant_index = self.variants.get_index(variant_name)
         genotypes = self.genotypes.get_genotypes(variant_index)
         xy = self.intensities.get_intensities(variant_index)
 #         xy = self.
         fig, ax = plt.subplots(figsize=(10, 10))
-        for k, v in GENOTYPE_MAPPING.iteritems():
-            t = xy[genotypes == k]
+        for m in GENOTYPE_MAPPING:
+            code = m['code']
+            t = xy[genotypes == code]
             ax.scatter(t[:,0], t[:,1],
-                       color=v['color'],
+                       color=m['color'],
                        s=50,
-                       alpha=0.75,
-                       lw=0.333,
+                       alpha=m.get('alpha', 0.75),
+                       lw=m.get('lw', 0.333),
                        edgecolor='black',
                       )
         xymin = -0.1
@@ -265,10 +266,10 @@ class EvokerLite(object):
 #         fig.savefig('test.png')
         return ax
 
+
 if __name__ == '__main__':        
     bfile_path = '/lustre/scratch115/realdata/mdt0/teams/barrett/users/dr9/gwas3_eva/coreex_gaibdc.1'
     int_path = '/lustre/scratch115/realdata/mdt0/teams/barrett/users/dr9/gwas3_eva/coreex_gaibdc.synced.int'
     e = EvokerLite(bfile_path, int_path=int_path)
     e.plot_intensities('rs1039823')
 
-    
