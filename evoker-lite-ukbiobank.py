@@ -1,7 +1,4 @@
-#!/usr/bin/env python
 import numpy as np
-import matplotlib
-matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from math import ceil
 from struct import unpack
@@ -9,6 +6,7 @@ import seaborn as sns
 import re
 import os
 import shutil
+
 
 class Variants(object):
     
@@ -124,14 +122,14 @@ class Genotypes(object):
             assert magic == self.HEADER_MAGIC
 
     def get_offset(self, variant_index):
-#         offset = len(self.HEADER_MAGIC)
-#         offset += ceil(self.n_samples / 4.) * variant_index
-        offset = ceil(self.n_samples / 4.) * variant_index
+        offset = len(self.HEADER_MAGIC)
+        offset += ceil(self.n_samples / 4.) * variant_index
+#         offset = ceil(self.n_samples / 4.) * variant_index
         return int(offset)
     
     def get_genotypes(self, variant_index):
         offset = self.get_offset(variant_index)
-        n_bytes = int(ceil(self.n_samples / 4.))
+        n_bytes = int(ceil(self.n_samples / 4))
         with open(self.file_path, 'rb') as f:
             f.seek(offset)
             _bytes = f.read(n_bytes)
@@ -222,19 +220,20 @@ class EvokerLite(object):
             self.exclude_list = exclude_list
     
     def plot_intensities(self, variant_name, batch=False):
-        GENOTYPE_MAPPING = (
-            {'code':'00', 'name':'homozygous A1', 'color':'blue'},
-            {'code':'10', 'name':'heterozygous', 'color':'limegreen'},
-            {'code':'11', 'name':'homozygous A2', 'color':'red'},
-            {'code':'01', 'name':'missing', 'color':'lightgrey', 'alpha':0.9, 'lw':0.75},
-        )
         variant_index = self.variants.get_index(variant_name)
+        A1 = self.variants.get_A1(variant_index)
+        A2 = self.variants.get_A2(variant_index)
+        GENOTYPE_MAPPING = (
+            {'code':'00', 'name':'homozygous A1', 'color':'blue', 'label': '{A1}{A1}'.format(A1=A1,A2=A2)},
+            {'code':'10', 'name':'heterozygous', 'color':'limegreen', 'label': '{A1}{A2}|{A2}{A1}'.format(A1=A1,A2=A2)},
+            {'code':'11', 'name':'homozygous A2', 'color':'red', 'label': '{A2}{A2}'.format(A1=A1,A2=A2)},
+            {'code':'01', 'name':'missing', 'color':'lightgrey', 'alpha':0.9, 'lw':0.75, 'label': 'Missing'},
+        )
         genotypes = self.genotypes.get_genotypes(variant_index)
         xy = self.intensities.get_intensities_for_variant(variant_index)
         if batch:
             batches = self.samples.get_batches()
             batch_indices = batches == batch
-            print(sum(batch_indices))
             genotypes = genotypes[batch_indices]
             xy = xy[batch_indices]
             
@@ -248,6 +247,7 @@ class EvokerLite(object):
                        alpha=m.get('alpha', 0.75),
                        lw=m.get('lw', 0.25),
                        edgecolor='black',
+                       label=m['label']
                       )
 #         xymin = min(-0.1, xy.min())
 #         xymax = 1.1 * xy.max()
@@ -257,12 +257,11 @@ class EvokerLite(object):
         ax.spines['right'].set_visible(False)
         ax.yaxis.set_ticks_position('left')
         ax.xaxis.set_ticks_position('bottom')
-#         ax.spines['bottom'].set_visible(False)
-#         ax.spines['left'].set_visible(False)
-#         fig.savefig('test.png')
+        ax.legend()
         return fig
 
-    def plot_save_all_batches(self, variant_name, directory):
+    def plot_save_all_batches(self, variant_name, parent_directory):
+        directory = os.path.join(parent_directory, variant_name)
         try:
             shutil.rmtree(directory)
         except FileNotFoundError:
@@ -274,13 +273,10 @@ class EvokerLite(object):
             filename = os.path.join(directory, batch + '.png')
             fig.savefig(filename)
             plt.close('all')
-        
 
-if __name__ == '__main__':        
-    bb = EvokerLite(
-        bfile_path='/lustre/scratch115/realdata/mdt0/teams/barrett/users/dr9/UKBioBankEvoker/V2_QCed.export.UKBiLEVEAX_b1-b11.Batch_b001_b095.chr22',
-        bnt_path='/lustre/scratch115/realdata/mdt0/teams/barrett/users/dr9/UKBioBankEvoker/V2_QCed.export.intensity.chr22.bin',
-        )
-    variant = 'rs62224618'
-    plot_directory = os.path.join('/lustre/scratch115/teams/barrett/users/dr9/UKBioBankEvoker/plots', variant)
-    bb.plot_save_all_batches(variant, plot_directory)
+
+if __name__ == '__main__':
+    bfile_path = '/lustre/scratch115/realdata/mdt0/teams/barrett/users/dr9/UKBioBankEvoker/V2_QCed.export.UKBiLEVEAX_b1-b11.Batch_b001_b095.chr22'
+    bnt_path = '/lustre/scratch115/realdata/mdt0/teams/barrett/users/dr9/UKBioBankEvoker/V2_QCed.export.intensity.chr22.bin'
+    bb = EvokerLite(bfile_path, bnt_path=bnt_path)
+    bb.plot_save_all_batches('rs62224618', '/lustre/scratch115/realdata/mdt0/teams/barrett/users/dr9/UKBioBankEvoker/plots')
