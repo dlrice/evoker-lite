@@ -25,7 +25,7 @@ class Genotypes(object):
     
     def get_genotypes(self, variant_index):
         offset = self.get_offset(variant_index)
-        n_bytes = int(ceil(self.n_samples / 4))
+        n_bytes = int(ceil(self.n_samples / 4.))
         with open(self.file_path, 'rb') as f:
             f.seek(offset)
             _bytes = f.read(n_bytes)

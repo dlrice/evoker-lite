@@ -1,6 +1,6 @@
 # Evoker Lite
 
-Evoker Lite is a python tool to generate cluster plots (PNG/PDF files) given a set of PLINK + intensity files. It is Lite as the original Evoker is more fully featured Java program which allows for interactive plotting (zooming, panning) and also selection and reassignment of calls.
+Evoker Lite is a python tool to generate cluster plots (PNG/PDF files) given a set of PLINK + intensity files. It is Lite as the original [Evoker](https://github.com/wtsi-medical-genomics/evoker) is a fully featured Java program which allows for interactive plotting (zooming, panning) and also selection and reassignment of calls.
 
 ## UK Biobank v2
 
@@ -16,6 +16,8 @@ The current release of this tool has been designed to work with v2 of the UK Bio
 
  Once complete the directory `~/plots/`, in this example, will contain subdirectories for each rsid and within these a PNG for each batch.
 
+
+**Note** The original [Evoker](https://github.com/wtsi-medical-genomics/evoker) is presently being developed to allow viewing/call reassignment of UK Biobank data.
 
 ## Command line arguments
 
