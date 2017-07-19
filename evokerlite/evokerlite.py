@@ -30,6 +30,9 @@ UKB_SEX_CHROMOSOMES = {
     'XY': 'XY',
 }
 
+RE_FAM = re.compile(r'.*\.fam')
+RE_BIM = re.compile(r'ukb_snp_chr([0-9,X,x,Y,y]+)_v2\.bim')
+
 
 def file_format_check(ext, fallback=None):
     if ext not in ALLOWED_IMAGE_FORMATS:
@@ -226,14 +229,12 @@ def plot_uk_biobank(data, output, rsids, transform=True, snp_posterior=True):
     # First determine which chromosomes need to be loaded
     # Get a list of all bim files
     rsids = set(rsids)
-    re_bim = re.compile(r'ukb_snp_chr([0-9,X,x,Y,y]+)_v2\.bim')
-    re_fam = re.compile(r'.*\.fam')
     ls = os.listdir(data)
     chrom2rsids = defaultdict(set)
     found = set()
     dd = lambda x: os.path.join(data, x)
     for filename in ls:
-        m = re_bim.match(filename)
+        m = RE_BIM.match(filename)
         if m:
             chrom = m.groups()[0]
             bim_rsids = get_rsids(dd(filename))
@@ -247,7 +248,7 @@ def plot_uk_biobank(data, output, rsids, transform=True, snp_posterior=True):
                     break
 
     for filename in ls:
-        m = re_fam.match(filename)
+        m = RE_FAM.match(filename)
         if m:
             famfile = filename
             break 
@@ -271,6 +272,53 @@ def plot_uk_biobank(data, output, rsids, transform=True, snp_posterior=True):
             el.save_all_batches(variant_name=rsid, outdirectory=output,
                 transform=transform, ellipses=snp_posterior)
 
+
+class UKBiobankDirectory(object):
+
+    def __init__(self, data):
+        # First determine which chromosomes need to be loaded
+        # Get a list of all bim files
+        rsid2chrom = {} 
+        chroms = []    
+        ls = os.listdir(data)
+        dd = lambda x: os.path.join(data, x)
+        for filename in ls:
+            m = RE_BIM.match(filename)
+            if m:
+                chrom = m.groups()[0]
+                chroms.append(chrom)
+                bim_rsids = get_rsids(dd(filename))
+                for rsid in bim_rsids:
+                    rsid2chrom[rsid] = chrom 
+        self.rsid2chrom = rsid2chrom
+        for filename in ls:
+            m = RE_FAM.match(filename)
+            if m:
+                famfile = filename
+                break 
+        else:
+            raise Exception('Directory should contain a single fam file.')
+
+        evoker_lites = {}
+        for chrom in chroms:
+            params = {
+                'bed_path': dd('ukb_cal_chr{}_v2.bed'.format(chrom)),
+                'fam_path': dd(famfile),
+                'bim_path': dd('ukb_snp_chr{}_v2.bim'.format(chrom)),
+                'bnt_path': dd('ukb_int_chr{}_v2.bin'.format(chrom)),
+                'batch_path': dd('ukb_snp_posterior.batch'),
+                'chrom': chrom,
+                'ukbiobank': True,
+            }
+            snp_posterior = dd('ukb_snp_posterior_chr{}.bin'.format(chrom))
+            if os.path.isfile(snp_posterior):
+                params['snp_posterior_path'] = snp_posterior
+            evoker_lites[chrom] = EvokerLite(**params)
+            self.evoker_lites = evoker_lites
+
+    def plot(self, rsid, batch):
+        chrom = self.rsid2chrom[rsid]
+        return self.evoker_lites[chrom].plot(rsid, batch)
 
 def get_rsids(bim):
     rsids = []
