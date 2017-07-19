@@ -10,12 +10,12 @@ from argparse import ArgumentParser
 import logging
 logging.basicConfig(level=logging.INFO)
 
-from .intensity import TextIntensity, BinaryIntensity
-from .genotypes import Genotypes
-from .samples import Samples
-from .variants import Variants
-from .snp_posterior import SNPPosterior
-from .batches import Batches
+from intensity import TextIntensity, BinaryIntensity
+from genotypes import Genotypes
+from samples import Samples
+from variants import Variants
+from snp_posterior import SNPPosterior
+from batches import Batches
 
 ALLOWED_IMAGE_FORMATS = ('.pdf', '.png')
 DEFAULT_IMAGE_FORMAT = '.png'
