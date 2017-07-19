@@ -305,11 +305,11 @@ def cli():
         )
     parser.add_argument('--no-transform',
         action='store_true',
-        help='do not plot UKBiobank data in contrast/strength coordinates.'
+        help='flag to not plot UKBiobank data in contrast/strength coordinates'
         )
     parser.add_argument('--no-snp-posterior',
         action='store_true',
-        help='do not plot UKBiobank SNP Posterior.'
+        help='do not plot UKBiobank SNP Posterior'
         )
 
     args = parser.parse_args()
