@@ -287,7 +287,7 @@ def cli():
     parser = ArgumentParser()
     parser.add_argument('--ukb',
         action='store_true',
-        help='data is in UKBiobank format'
+        help='flag to indicate data is in UK Biobank format'
         )
     parser.add_argument('-d', '--data',
         type=str,
