@@ -23,12 +23,10 @@ class Variants(object):
         for index, variant in enumerate(self.variants):
             if variant.name == variant_name:
                 return index
-    
-    def get_A1(self, variant_index):
-        return self.variants[variant_index].get_A1()
-    
-    def get_A2(self, variant_index):
-            return self.variants[variant_index].get_A2()
+   
+    def get_variant(self, variant_index):
+        return self.variants[variant_index]
+
 
 #     def get_counts(self, variant_index):
 #         A1 = get_A2(variant_index)
@@ -60,5 +58,8 @@ class Variant(object):
     def get_name(self):
         return self.name
     
+    def get_chrom(self):
+        return self.chrom
+
     def __str__(self):
         return '{}:{} {}'.format(self.chrom, self.pos, self.name)

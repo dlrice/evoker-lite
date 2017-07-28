@@ -22,9 +22,9 @@ DEFAULT_IMAGE_FORMAT = '.png'
 
 # UKB chromosome convention: X=23,Y=24,XY=25,MT=26
 UKB_SEX_CHROMOSOMES = {
-    23: 'X',
-    24: 'Y',
-    25: 'XY',
+    '23': 'X',
+    '24': 'Y',
+    '25': 'XY',
     'X': 'X',
     'Y': 'Y',
     'XY': 'XY',
@@ -83,9 +83,6 @@ class EvokerLite:
             n_samples, n_variants)
         
         if ukbiobank:
-            if chrom:
-                self.chrom = chrom
-
             if snp_posterior_path:
                 if not snp_posterior_batch_path:
                     raise Exception('When plotting snp posterior\'s in UK' 
@@ -111,8 +108,11 @@ class EvokerLite:
     
     def plot(self, variant_name, batch=None, ellipses=None, ax=None, transform=None):
         variant_index = self.variants.get_index(variant_name)
-        A1 = self.variants.get_A1(variant_index)
-        A2 = self.variants.get_A2(variant_index)
+        variant = self.variants.get_variant(variant_index)
+        A1 = variant.get_A1()
+        A2 = variant.get_A2()
+        chrom = variant.get_chrom()
+
         genotype_mapping = (
             {'code':'00', 'name':'homozygous A1', 'color':'blue', 'label': '{A1}{A1}'.format(A1=A1,A2=A2)},
             {'code':'10', 'name':'heterozygous', 'color':'limegreen', 'label': '{A1}{A2}|{A2}{A1}'.format(A1=A1,A2=A2)},
@@ -136,7 +136,7 @@ class EvokerLite:
             genotypes = genotypes[batch_indices]
             xy = xy[batch_indices]
 
-            if self.chrom in UKB_SEX_CHROMOSOMES.keys():
+            if chrom in UKB_SEX_CHROMOSOMES.keys():
                 plot_sexes = True
                 sexes = self.samples.get_sex()
                 sexes = sexes[batch_indices]
@@ -175,12 +175,11 @@ class EvokerLite:
                     ax.plot(ellipse_points[:,0], ellipse_points[:,1], color='black')
 
         title = variant_name
-        if self.chrom:
-            if self.ukbiobank:
-                c = UKB_SEX_CHROMOSOMES.get(self.chrom, self.chrom)
-            else:
-                c = self.chrom
-            title += ' | chr{}'.format(c)
+        if self.ukbiobank:
+            c = UKB_SEX_CHROMOSOMES.get(chrom, chrom)
+        else:
+            c = chrom
+        title += ' | chr{}'.format(c)
         if batch:
             title += ' | {}'.format(batch)
         title += ' | n={}'.format(len(genotypes))
