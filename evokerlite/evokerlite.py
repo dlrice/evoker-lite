@@ -10,12 +10,12 @@ from argparse import ArgumentParser
 import logging
 logging.basicConfig(level=logging.INFO)
 
-from intensity import TextIntensity, BinaryIntensity
-from genotypes import Genotypes
-from samples import Samples
-from variants import Variants
-from snp_posterior import SNPPosterior
-from batches import Batches
+from .intensity import TextIntensity, BinaryIntensity
+from .genotypes import Genotypes
+from .samples import Samples
+from .variants import Variants
+from .snp_posterior import SNPPosterior
+from .batches import Batches
 
 ALLOWED_IMAGE_FORMATS = ('.pdf', '.png')
 DEFAULT_IMAGE_FORMAT = '.png'
@@ -30,8 +30,8 @@ UKB_SEX_CHROMOSOMES = {
     'XY': 'XY',
 }
 
-RE_FAM = re.compile(r'.*\.fam')
-RE_BIM = re.compile(r'ukb_snp_chr([0-9,X,x,Y,y]+)_v2\.bim')
+RE_FAM = re.compile(r'.*\.fam$')
+RE_BIM = re.compile(r'ukb_snp_chr([0-9,X,x,Y,y]+)_v2\.bim$')
 
 
 def file_format_check(ext, fallback=None):
@@ -225,7 +225,7 @@ class EvokerLite:
             self.save_plot(variant_name, outpath=directory, batch=batch, ellipses=ellipses, transform=transform)
 
 
-def plot_uk_biobank(data, output, rsids, transform=True, snp_posterior=True):
+def plot_uk_biobank(data, output, rsids, transform=True, snp_posterior=True, fam=None):
     # First determine which chromosomes need to be loaded
     # Get a list of all bim files
     rsids = set(rsids)
@@ -247,13 +247,16 @@ def plot_uk_biobank(data, output, rsids, transform=True, snp_posterior=True):
                 if found == rsids:
                     break
 
-    for filename in ls:
-        m = RE_FAM.match(filename)
-        if m:
-            famfile = filename
-            break 
+    if fam:
+        famfile = fam
     else:
-        raise Exception('Directory should contain a single fam file.')
+        for filename in ls:
+            m = RE_FAM.match(filename)
+            if m:
+                famfile = filename
+                break 
+        else:
+            raise Exception('Directory should contain a single fam file.')
 
     for chrom, _rsids in chrom2rsids.items():
         params = {
@@ -322,6 +325,7 @@ class UKBiobankDirectory(object):
 
 def get_rsids(bim):
     rsids = []
+    print(bim)
     with open(bim) as f:
         for line in f:
             tokens = line.split()
@@ -342,6 +346,10 @@ def cli():
         required=True,
         help='directory of PLINK/intensity data'
         )
+    parser.add_argument('-f', '--fam',
+        type=str,
+        help='location of fam file (specify if not in the same directory as of PLINK/instensity data',
+        )
     parser.add_argument('-o', '--output',
         type=str,
         help='directory to save plots',
@@ -355,9 +363,9 @@ def cli():
         action='store_true',
         help='flag to not plot UKBiobank data in contrast/strength coordinates'
         )
-    parser.add_argument('--no-snp-posterior',
+    parser.add_argument('--snp-posterior',
         action='store_true',
-        help='do not plot UKBiobank SNP Posterior'
+        help='plot UKBiobank SNP Posterior'
         )
 
     args = parser.parse_args()
@@ -374,8 +382,10 @@ def cli():
         if not transform:
             snp_posterior = False
         else:
-            snp_posterior = not args.no_snp_posterior
-        plot_uk_biobank(args.data, output, rsids, transform, snp_posterior)
+            snp_posterior = args.snp_posterior
+        plot_uk_biobank(args.data, output, rsids, transform, snp_posterior, args.fam)
+    else:
+        plot
 
 
 if __name__ == '__main__':

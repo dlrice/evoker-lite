@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(
-    name = "evoker_lite",
+    name = "evokerlite",
     version = "0.0.2",
     author = "Daniel Rice",
     author_email = "dr9@sanger.ac.uk",
@@ -16,4 +16,5 @@ setup(
         "Development Status :: 3 - Alpha",
         "License :: OSI Approved :: MIT License",
     ],
+    entry_points= {'console_scripts': ['evoker-lite=evokerlite.evokerlite:cli']}
 )
