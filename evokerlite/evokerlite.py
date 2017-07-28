@@ -69,8 +69,9 @@ class EvokerLite:
     """
     
     """
-    def __init__(self, bfile_path=None, int_path=None, fam_path=None, bnt_path=None,
-                 bim_path=None, bed_path=None, batch_path=None, snp_posterior_path=None,
+    def __init__(self, bfile_path=None, int_path=None, fam_path=None,
+                 bnt_path=None, bim_path=None, bed_path=None, 
+                 snp_posterior_batch_path=None, snp_posterior_path=None, 
                  exclude_list_path=None, ukbiobank=False, chrom=None):
 
         self.ukbiobank = ukbiobank
@@ -84,13 +85,15 @@ class EvokerLite:
         if ukbiobank:
             if chrom:
                 self.chrom = chrom
-            if not batch_path:
-                raise Exception('UK Biobank requires a batch file.')
-            self.batches = Batches(batch_path)
+
             if snp_posterior_path:
+                if not snp_posterior_batch_path:
+                    raise Exception('When plotting snp posterior\'s in UK' 
+                            'Biobank requires a batch file.')
+                self.snp_posterior_batches = Batches(batch_path)
                 logging.debug(snp_posterior_path)
                 self.snp_posterior = SNPPosterior(file_path=snp_posterior_path,
-                    n_batches=self.batches.get_n_batches())
+                    n_batches=self.snp_posterior_batches.get_n_batches())
         if bnt_path:
             self.intensities = BinaryIntensity(bnt_path, self.samples, ukbiobank)
         elif int_path:
@@ -142,7 +145,7 @@ class EvokerLite:
                 ellipses = None
             if ellipses:
                 if plot_sexes:
-                    batch_index = self.batches.get_index(batch)
+                    batch_index = self.snp_posterior_batches.get_index(batch)
                     ellipses = self.snp_posterior.get_batch_ellipse_points(variant_index, batch_index)
                 else:
                     ellipses = None
@@ -225,7 +228,7 @@ class EvokerLite:
             self.save_plot(variant_name, outpath=directory, batch=batch, ellipses=ellipses, transform=transform)
 
 
-def plot_uk_biobank(data, output, rsids, transform=True, snp_posterior=True, fam=None):
+def plot_uk_biobank(data, output, rsids, transform=True, snp_posterior=False, fam=None):
     # First determine which chromosomes need to be loaded
     # Get a list of all bim files
     rsids = set(rsids)
@@ -264,64 +267,64 @@ def plot_uk_biobank(data, output, rsids, transform=True, snp_posterior=True, fam
             'fam_path': dd(famfile),
             'bim_path': dd('ukb_snp_chr{}_v2.bim'.format(chrom)),
             'bnt_path': dd('ukb_int_chr{}_v2.bin'.format(chrom)),
-            'batch_path': dd('ukb_snp_posterior.batch'),
             'chrom': chrom,
             'ukbiobank': True,
         }
         if snp_posterior:
             params['snp_posterior_path'] = dd('ukb_snp_posterior_chr{}.bin'.format(chrom))
+            params['batch_path'] = dd('ukb_snp_posterior.batch')
         el = EvokerLite(**params)
         for rsid in _rsids:
             el.save_all_batches(variant_name=rsid, outdirectory=output,
                 transform=transform, ellipses=snp_posterior)
 
 
-class UKBiobankDirectory(object):
-
-    def __init__(self, data):
-        # First determine which chromosomes need to be loaded
-        # Get a list of all bim files
-        rsid2chrom = {} 
-        chroms = []    
-        ls = os.listdir(data)
-        dd = lambda x: os.path.join(data, x)
-        for filename in ls:
-            m = RE_BIM.match(filename)
-            if m:
-                chrom = m.groups()[0]
-                chroms.append(chrom)
-                bim_rsids = get_rsids(dd(filename))
-                for rsid in bim_rsids:
-                    rsid2chrom[rsid] = chrom 
-        self.rsid2chrom = rsid2chrom
-        for filename in ls:
-            m = RE_FAM.match(filename)
-            if m:
-                famfile = filename
-                break 
-        else:
-            raise Exception('Directory should contain a single fam file.')
-
-        evoker_lites = {}
-        for chrom in chroms:
-            params = {
-                'bed_path': dd('ukb_cal_chr{}_v2.bed'.format(chrom)),
-                'fam_path': dd(famfile),
-                'bim_path': dd('ukb_snp_chr{}_v2.bim'.format(chrom)),
-                'bnt_path': dd('ukb_int_chr{}_v2.bin'.format(chrom)),
-                'batch_path': dd('ukb_snp_posterior.batch'),
-                'chrom': chrom,
-                'ukbiobank': True,
-            }
-            snp_posterior = dd('ukb_snp_posterior_chr{}.bin'.format(chrom))
-            if os.path.isfile(snp_posterior):
-                params['snp_posterior_path'] = snp_posterior
-            evoker_lites[chrom] = EvokerLite(**params)
-            self.evoker_lites = evoker_lites
-
-    def plot(self, rsid, batch):
-        chrom = self.rsid2chrom[rsid]
-        return self.evoker_lites[chrom].plot(rsid, batch)
+#class UKBiobankDirectory(object):
+#
+#    def __init__(self, data):
+#        # First determine which chromosomes need to be loaded
+#        # Get a list of all bim files
+#        rsid2chrom = {} 
+#        chroms = []    
+#        ls = os.listdir(data)
+#        dd = lambda x: os.path.join(data, x)
+#        for filename in ls:
+#            m = RE_BIM.match(filename)
+#            if m:
+#                chrom = m.groups()[0]
+#                chroms.append(chrom)
+#                bim_rsids = get_rsids(dd(filename))
+#                for rsid in bim_rsids:
+#                    rsid2chrom[rsid] = chrom 
+#        self.rsid2chrom = rsid2chrom
+#        for filename in ls:
+#            m = RE_FAM.match(filename)
+#            if m:
+#                famfile = filename
+#                break 
+#        else:
+#            raise Exception('Directory should contain a single fam file.')
+#
+#        evoker_lites = {}
+#        for chrom in chroms:
+#            params = {
+#                'bed_path': dd('ukb_cal_chr{}_v2.bed'.format(chrom)),
+#                'fam_path': dd(famfile),
+#                'bim_path': dd('ukb_snp_chr{}_v2.bim'.format(chrom)),
+#                'bnt_path': dd('ukb_int_chr{}_v2.bin'.format(chrom)),
+#                'batch_path': dd('ukb_snp_posterior.batch'),
+#                'chrom': chrom,
+#                'ukbiobank': True,
+#            }
+#            snp_posterior = dd('ukb_snp_posterior_chr{}.bin'.format(chrom))
+#            if os.path.isfile(snp_posterior):
+#                params['snp_posterior_path'] = snp_posterior
+#            evoker_lites[chrom] = EvokerLite(**params)
+#            self.evoker_lites = evoker_lites
+#
+#    def plot(self, rsid, batch):
+#        chrom = self.rsid2chrom[rsid]
+#        return self.evoker_lites[chrom].plot(rsid, batch)
 
 def get_rsids(bim):
     rsids = []
@@ -354,7 +357,7 @@ def cli():
         type=str,
         help='directory to save plots',
         )
-    parser.add_argument('-s', '--rsids',
+    parser.add_argument('-r', '--rsids',
         type=str,
         required=True,
         help='text file with rsids to create cluster plots from',

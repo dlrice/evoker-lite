@@ -1,17 +1,18 @@
 # Evoker Lite
 
-Evoker Lite is a python tool to generate cluster plots (PNG/PDF files) given a set of PLINK + intensity files. It is Lite as the original [Evoker](https://github.com/wtsi-medical-genomics/evoker) is a fully featured Java program which allows for interactive plotting (zooming, panning) and also selection and reassignment of calls.
+Evoker Lite is a python tool to generate cluster plots (PNG/PDF files) given a set of PLINK + intensity files. It is Lite in the sense that the original [Evoker](https://github.com/wtsi-medical-genomics/evoker) is a Java program which allows for interactive plotting (zooming, panning) and also selection and reassignment of calls.
 
 ## UK Biobank v2
 
 The current release of this tool has been designed to work with v2 of the UK Biobank data. For example, to generate cluster plots for each of the rsid's named in `rsid_list.txt` and over all of the batches:
 
  ```
- python -m evoker_lite.py  \
+evoker-lite \
  --ukb \
- --data ~/ukb/data/ \
+ --data /ukbiobank/release/Genotypes/ \
+ --fam ~/ukb1234_cal_v2_s488377.fam \
  --output ~/plots/ \
- --rsids rsid_list.txt
+ --rsids ~/rsid_list.txt
  ```
 
  Once complete the directory `~/plots/`, in this example, will contain subdirectories for each rsid and within these a PNG for each batch.
@@ -24,10 +25,11 @@ The current release of this tool has been designed to work with v2 of the UK Bio
 ```
 --ukb               flag to indicate data is in UKBiobank format
 -d, --data          directory of PLINK/intensity data
+-f, --fam           location of the fam file if not in the directory specified with -d/--data
 -o, --output        directory to save plots
--s RSIDS, --rsids   text file with rsids to create cluster plots from
---no-transform      flag to not plot UKBiobank data in contrast/strength coordinates
---no-snp-posterior  flag to not plot UKBiobank SNP Posterior
+-r RSIDS, --rsids   text file with rsids to create cluster plots from
+--no-transform      [UK Biobank] flag to not use contrast/strength coordinates
+--snp-posterior     [UK Biobank] flag to plot SNP Posterior
 ```
 
 ## Requirements
@@ -41,15 +43,7 @@ The quickest and easiest way to install all of these is via [miniconda](https://
 
 ## Installation
 
-If you already have the above dependencies met, clone this repository and you can use the code immediately:
-
 ```
-git clone https://github.com/dlrice/evoker-lite
-cd evoker-lite
+pip install git+git://github.com/dlrice/evoker-lite.git --user
 ```
 
-If you require pip to install the dependencies run the additional step:
-
-```
-python setup.py install --user
-```
