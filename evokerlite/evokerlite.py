@@ -350,7 +350,7 @@ def plot(data, output, rsids, fam=None):
     def dd(x): return os.path.join(data, x)
 
     params = {}
-    if (fam):
+    if fam:
         params['fam_path'] = dd(fam)
     for file_prefix, _rsids in file_prefix_to_rsids.items():
         params = {
