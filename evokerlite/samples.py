@@ -1,7 +1,8 @@
 from numpy import array
 
+
 class Samples(object):
-    
+
     def __init__(self, file_path, ukbiobank=False):
         self.__ukbiobank = ukbiobank
         self.load_samples(file_path)
@@ -15,17 +16,17 @@ class Samples(object):
             for line in f:
                 tokens = line.split()
                 samples.append(tokens[0])
-                sex.append(tokens[4])
                 if self.__ukbiobank:
+                    sex.append(tokens[4])
                     batches.append(tokens[5])
         self.__samples = samples
         if self.__ukbiobank:
             self.__sex = array(sex, dtype=int)
             self.__batches = array(batches)
-        
+
     def get_samples(self):
         return self.__samples
-    
+
     def get_n_samples(self):
         return len(self.__samples)
 
