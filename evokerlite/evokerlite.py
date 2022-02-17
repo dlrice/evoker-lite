@@ -6,7 +6,7 @@ import os
 import re
 import matplotlib.pyplot as plt
 import matplotlib
-from _version import __version__
+from ._version import __version__
 from .batches import Batches
 from .snp_posterior import SNPPosterior
 from .variants import Variants

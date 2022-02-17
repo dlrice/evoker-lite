@@ -1,5 +1,5 @@
 from setuptools import setup
-from _version import __version__
+from .evokerlite._version import __version__
 
 
 setup(
