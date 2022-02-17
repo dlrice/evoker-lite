@@ -487,7 +487,9 @@ def cli():
         "--snp-posterior", action="store_true", help="plot UKBiobank SNP Posterior"
     )
     parser.add_argument(
-        "--debug", action="store_true", help="print all debug logging statements"
+        "--debug",
+        action="store_true",
+        help="print all debug logging statements to stderr",
     )
 
     args = parser.parse_args()
