@@ -6,7 +6,6 @@ import os
 import re
 import matplotlib.pyplot as plt
 import matplotlib
-from ._version import __version__
 from .batches import Batches
 from .snp_posterior import SNPPosterior
 from .variants import Variants
@@ -14,6 +13,7 @@ from .samples import Samples
 from .genotypes import Genotypes
 from .intensity import TextIntensity, BinaryIntensity
 
+__version__ = "0.0.5"
 
 matplotlib.use("Agg")
 logging.basicConfig(level=logging.INFO)
