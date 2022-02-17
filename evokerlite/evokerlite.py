@@ -6,12 +6,14 @@ import os
 import re
 import matplotlib.pyplot as plt
 import matplotlib
+from _version import __version__
 from .batches import Batches
 from .snp_posterior import SNPPosterior
 from .variants import Variants
 from .samples import Samples
 from .genotypes import Genotypes
 from .intensity import TextIntensity, BinaryIntensity
+
 
 matplotlib.use("Agg")
 logging.basicConfig(level=logging.INFO)
@@ -317,7 +319,6 @@ class EvokerLite:
 
 def get_rsids(bim):
     rsids = []
-    print(bim)
     with open(bim) as f:
         for line in f:
             tokens = line.split()
@@ -435,6 +436,8 @@ def plot(data, output, rsids, fam=None):
 
 
 def cli():
+    print(f"Evoker Lite v{__version__}")
+
     parser = ArgumentParser()
     parser.add_argument(
         "--ukb",
