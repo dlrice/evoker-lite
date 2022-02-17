@@ -16,8 +16,8 @@ from .intensity import TextIntensity, BinaryIntensity
 __version__ = "0.0.5"
 
 matplotlib.use("Agg")
-logging.basicConfig(level=logging.INFO)
 
+logging.getLogger("matplotlib").setLevel(logging.WARNING)
 
 ALLOWED_IMAGE_FORMATS = (".pdf", ".png")
 DEFAULT_IMAGE_FORMAT = ".png"
@@ -113,6 +113,7 @@ class EvokerLite:
                     file_path=snp_posterior_path,
                     n_batches=self.snp_posterior_batches.get_n_batches(),
                 )
+
         if bnt_path:
             self.intensities = BinaryIntensity(bnt_path, self.samples, ukbiobank)
         elif int_path:
@@ -175,7 +176,7 @@ class EvokerLite:
             transform = True
         xy = self.intensities.get_intensities_for_variant(variant_index, transform)
 
-        logging.debug(xy)
+        # logging.debug(xy)
         plot_sexes = False
         if self.ukbiobank:
             if batch is None:
@@ -306,6 +307,7 @@ class EvokerLite:
         else:
             os.mkdir(directory)
         batches = sorted(list(set(self.samples.get_batches())))
+        logging.debug(f"n batches: {batch}")
         for batch in batches:
             self.save_plot(
                 variant_name,
@@ -353,6 +355,9 @@ def get_chrom_to_rsids(rsids, data):
 
 def plot_uk_biobank(data, output, rsids, transform=True, snp_posterior=False, fam=None):
     chrom2rsids = get_chrom_to_rsids(rsids, data)
+    logging.debug(f"n chroms: {len(chrom2rsids)}")
+    logging.debug(f"chrom2rsids: {chrom2rsids}")
+
     ls = os.listdir(data)
 
     if fam:
@@ -365,6 +370,8 @@ def plot_uk_biobank(data, output, rsids, transform=True, snp_posterior=False, fa
                 break
         else:
             raise Exception("Directory should contain a single fam file.")
+
+    logging.debug(f"UKBB famfile {famfile}")
 
     def dd(x):
         return os.path.join(data, x)
@@ -382,6 +389,9 @@ def plot_uk_biobank(data, output, rsids, transform=True, snp_posterior=False, fa
                 "ukb_snp_posterior_chr{}.bin".format(chrom)
             )
             params["batch_path"] = dd("ukb_snp_posterior.batch")
+
+        logging.debug(f"UKBB params {params}")
+
         el = EvokerLite(**params)
         for rsid in _rsids:
             el.save_all_batches(
@@ -430,6 +440,7 @@ def plot(data, output, rsids, fam=None):
         params["fam_path"] = dd(fam)
     for file_prefix, _rsids in file_prefix_to_rsids.items():
         params = {"bfile_path": dd(file_prefix)}
+        logging.debug(f"params {params}")
         el = EvokerLite(**params)
         for rsid in _rsids:
             el.save_plot(variant_name=rsid, outpath=output)
@@ -475,8 +486,18 @@ def cli():
     parser.add_argument(
         "--snp-posterior", action="store_true", help="plot UKBiobank SNP Posterior"
     )
+    parser.add_argument(
+        "--debug", action="store_true", help="print all debug logging statements"
+    )
 
     args = parser.parse_args()
+
+    if args.debug:
+        level = logging.DEBUG
+    else:
+        level = logging.INFO
+
+    logging.basicConfig(level=level)
 
     output = args.output
     if not output:

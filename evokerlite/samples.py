@@ -2,7 +2,6 @@ from numpy import array
 
 
 class Samples(object):
-
     def __init__(self, file_path, ukbiobank=False):
         self.__ukbiobank = ukbiobank
         self.load_samples(file_path)
@@ -38,10 +37,16 @@ class Samples(object):
 
     def get_batches(self):
         if not self.__ukbiobank:
-            raise Exception('Cannot access batches if not UKBiobank.')
+            raise Exception("Cannot access batches if not UKBiobank.")
         return self.__batches
 
     def get_n_batches(self):
         if not self.__ukbiobank:
-            raise Exception('Cannot access batches if not UKBiobank.')
+            raise Exception("Cannot access batches if not UKBiobank.")
         return len(self.__batches)
+
+    def __str__(self):
+        L = [f"samples:{self.__samples}"]
+        if self.__ukbiobank:
+            L += [f"sex:{self.__sex}", f"batches:{self.__batches}"]
+        return "".join(L)
