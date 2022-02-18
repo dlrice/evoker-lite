@@ -13,7 +13,7 @@ from .samples import Samples
 from .genotypes import Genotypes
 from .intensity import TextIntensity, BinaryIntensity
 
-__version__ = "0.0.6"
+__version__ = "0.0.7"
 
 matplotlib.use("Agg")
 
