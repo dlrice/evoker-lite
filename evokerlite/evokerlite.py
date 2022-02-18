@@ -307,7 +307,7 @@ class EvokerLite:
         else:
             os.mkdir(directory)
         batches = sorted(list(set(self.samples.get_batches())))
-        logging.debug(f"n batches: {batch}")
+        logging.debug(f"n batches: {len(batches)}")
         for batch in batches:
             self.save_plot(
                 variant_name,
